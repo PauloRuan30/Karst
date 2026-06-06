@@ -209,12 +209,12 @@ public class GameStartMenu : MonoBehaviour
             }
         }
         profiles.Clear();
-        profiles.Add(new TMP_Dropdown.OptionData("Select..", null));
+        profiles.Add(new TMP_Dropdown.OptionData("Select.."));
         foreach (string name in fileNames)
         {
             if (!name.Equals("spell_recognition_model.h5"))
             {
-                profiles.Add(new TMP_Dropdown.OptionData(Path.GetFileNameWithoutExtension(name), null));
+                profiles.Add(new TMP_Dropdown.OptionData(Path.GetFileNameWithoutExtension(name)));
             }
         }
 

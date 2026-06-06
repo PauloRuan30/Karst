@@ -45,7 +45,7 @@ public class Projectile : MonoBehaviour
     {
         if (speed != 0)
         {
-            rb.velocity = tip.transform.forward * speed;
+            rb.linearVelocity = tip.transform.forward * speed;
             //transform.position += transform.forward * (speed * Time.deltaTime);         
         }
     }
