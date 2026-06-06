@@ -4,12 +4,13 @@
 TagManager:
   serializedVersion: 3
   tags:
-  - CinemachineTarget
-  - Hidden_Area_1
-  - Hidden_Area_2
-  - Hidden_Area_3
-  - Cube_Spawn_Point_1
-  - Cube_Spawn_Point_2
+  - Anchor
+  - PlayerTag
+  - enemy_caster_skill
+  - caster
+  - melee
+  - summoner
+  - skeleton
   layers:
   - Default
   - TransparentFX
@@ -17,12 +18,12 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Projection
+  - Ground
+  - World
+  - Enemies
+  - Player
+  - Teleport
   - 
   - 
   - 
@@ -56,3 +57,5 @@ TagManager:
   - Light Layer 5
   - Light Layer 6
   - Light Layer 7
+  m_MigratedRenderPipelines:
+  - UnityEngine.Rendering.Universal.UniversalRenderPipeline
