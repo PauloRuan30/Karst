@@ -47,9 +47,19 @@ public class pythonConnector : MonoBehaviour
         ThreadStart ts = new ThreadStart(GetInfo);
         mThread = new Thread(ts);
         mThread.Start();
-        CreatePythonProcess();
         GameObject.Find("LoadingMessage").SetActive(true);
+        // Enviar o nome do modelo ANTES de tentar lançar o processo Python.
+        // Em Linux o CreatePythonProcess() estoura Win32Exception (não acha 'python'),
+        // e se isso rodasse antes, abortaria o Start() e o modelName nunca seria enviado.
         SetDataToSend(Encoding.UTF8.GetBytes(modelName));
+        try
+        {
+            CreatePythonProcess();
+        }
+        catch (System.Exception e)
+        {
+            UnityEngine.Debug.LogWarning("CreatePythonProcess falhou (rode o servidor Python manualmente): " + e.Message);
+        }
 
         //player.PlayerUpdateMana(-1000);
         //player.PlayerUpdateManaRegenerationSpeed(0);
@@ -88,10 +98,38 @@ public class pythonConnector : MonoBehaviour
 
         if (UsePythonCode)
         {
-            startInfo.FileName = "python";
-            startInfo.Arguments = "\"" + Path.Combine(Application.dataPath, "Scripts", "UnityPython", "UnityPython.py") + "\"";
-            startInfo.UseShellExecute = true;
+            // Prefere o python da venv do projeto (tem TensorFlow).
+            // Linux: ModelTrainScript/.venv/bin/python | Windows: ModelTrainScript/.venv/Scripts/python.exe
+            string venvLinux = Path.Combine(Application.dataPath, "..", "ModelTrainScript", ".venv", "bin", "python");
+            string venvWin = Path.Combine(Application.dataPath, "..", "ModelTrainScript", ".venv", "Scripts", "python.exe");
 
+            // Se a venv ainda não existe (ex: clone novo), cria automaticamente em background.
+            if (!File.Exists(venvLinux) && !File.Exists(venvWin))
+            {
+                string setupSh = Path.Combine(Application.dataPath, "..", "ModelTrainScript", "setup_venv.sh");
+                if (File.Exists(setupSh))
+                {
+                    var setup = new ProcessStartInfo
+                    {
+                        FileName = "bash",
+                        Arguments = "\"" + setupSh + "\"",
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                    };
+                    Process.Start(setup);
+                    UnityEngine.Debug.LogWarning("[pythonConnector] venv Python não encontrada — criando agora (primeira vez, pode levar minutos, download do TensorFlow). " +
+                                                 "Quando terminar, pare e dê Play de novo.");
+                }
+                else
+                {
+                    UnityEngine.Debug.LogError("[pythonConnector] venv ausente e setup_venv.sh não encontrado. Rode ModelTrainScript/setup_venv.sh manualmente.");
+                }
+                return; // não tenta rodar o servidor Python nesta sessão
+            }
+
+            startInfo.FileName = File.Exists(venvLinux) ? venvLinux : venvWin;
+            startInfo.Arguments = "\"" + Path.Combine(Application.dataPath, "Scripts", "UnityPython", "UnityPython.py") + "\"";
+            startInfo.UseShellExecute = false;
         }
         else
         {
