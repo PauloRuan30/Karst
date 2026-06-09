@@ -7,7 +7,7 @@ conjurar magias; um modelo CNN reconhece o desenho em tempo real e dispara a mag
 
 ## Requisitos
 
-- **Unity 6000.4.4f1** (Unity 6.4). Outras versões não testadas.
+- **Unity 6000.4.10f1** (Unity 6.4). Outras versões não testadas.
 - Plataforma **Android** instalada no editor (Quest é Android).
 - Headset **Meta Quest** (via Link/Air Link para testar no editor, ou build APK).
 - Para o reconhecimento de magias (servidor Python):
@@ -19,7 +19,7 @@ conjurar magias; um modelo CNN reconhece o desenho em tempo real e dispara a mag
 ## Como rodar
 
 ### 1. Abrir o projeto
-- **Unity Hub:** Add → selecione a pasta do projeto → abra com 6000.4.4f1.
+- **Unity Hub:** Add → selecione a pasta do projeto → abra com 6000.4.101.
 - **Linux (terminal):** `./launch.sh`
   - Acha o editor automaticamente. Para apontar manualmente:
     `UNITY_PATH=/caminho/Editor/Unity ./launch.sh`
