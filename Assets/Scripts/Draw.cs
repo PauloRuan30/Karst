@@ -19,6 +19,15 @@ public class Draw : MonoBehaviour
     [SerializeField] private Camera cam;
     [SerializeField] float movementThreshold = 0.5f; // Threshold for player movement
     [SerializeField] GameObject playerModel;
+
+    [Header("Debug (desktop, sem VR)")]
+    [Tooltip("Liga desenho com mouse: segure a tecla B e mova o mouse pra desenhar; solte pra reconhecer.")]
+    [SerializeField] private bool debugMouseDraw = false;
+    [Tooltip("Distancia do plano de desenho em frente a camera da tela.")]
+    [SerializeField] private float debugDrawDistance = 2f;
+    [Tooltip("Camera que renderiza a tela. Deixe vazio pra detectar automaticamente.")]
+    [SerializeField] private Camera debugViewCamera;
+
     private LineRenderer currentDrawing = null;
     private CastSystem castSystem;
     private Vector3 startDrawingPosition;
@@ -68,6 +77,14 @@ public class Draw : MonoBehaviour
         syncContext = System.Threading.SynchronizationContext.Current;
         castSystem = GetComponent<CastSystem>();
         pythonConnector.OnDataReceived += castSystem.PrepareSkill;
+
+        // Debug desktop: faz a camera da tela tambem renderizar a layer "Projection",
+        // senao o traco do desenho fica invisivel (so a Projection camera ve essa layer).
+        if (debugMouseDraw)
+        {
+            var vc = DebugViewCamera();
+            if (vc != null) vc.cullingMask |= (1 << LayerMask.NameToLayer("Projection"));
+        }
     }
 
     private void OnDestroy()
@@ -78,7 +95,16 @@ public class Draw : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        InputDevices.GetDeviceAtXRNode(XRNode.RightHand).IsPressed(InputHelpers.Button.TriggerButton, out bool rightJoystickButtonPressed);
+        bool rightJoystickButtonPressed;
+        if (debugMouseDraw)
+        {
+            // Desenho de debug no desktop: segure a tecla B e mova o mouse.
+            rightJoystickButtonPressed = Keyboard.current != null && Keyboard.current.bKey.isPressed;
+        }
+        else
+        {
+            InputDevices.GetDeviceAtXRNode(XRNode.RightHand).IsPressed(InputHelpers.Button.TriggerButton, out rightJoystickButtonPressed);
+        }
 
         if (rightJoystickButtonPressed)
         {
@@ -116,6 +142,31 @@ public class Draw : MonoBehaviour
         }
     }
 
+    // Camera que renderiza a tela (pra projetar o mouse e mostrar o traco no debug).
+    Camera DebugViewCamera()
+    {
+        if (debugViewCamera != null) return debugViewCamera;
+        if (Camera.main != null) return Camera.main;
+        foreach (var c in Camera.allCameras)
+            if (c.enabled && c.targetTexture == null) return c;
+        return Camera.allCameras.Length > 0 ? Camera.allCameras[0] : null;
+    }
+
+    // Ponto da "ponta da caneta": no VR e a tip; no debug, o mouse projetado em frente a camera da tela.
+    Vector3 PenPoint()
+    {
+        if (debugMouseDraw && Mouse.current != null)
+        {
+            var vc = DebugViewCamera();
+            if (vc != null)
+            {
+                Vector2 m = Mouse.current.position.ReadValue();
+                return vc.ScreenToWorldPoint(new Vector3(m.x, m.y, debugDrawDistance));
+            }
+        }
+        return tip.transform.position;
+    }
+
     void draw()
     {
         if (currentDrawing == null)
@@ -127,16 +178,16 @@ public class Draw : MonoBehaviour
             currentDrawing.positionCount = 1;
             currentDrawing.numCornerVertices = 20;
             currentDrawing.numCapVertices = 20;
-            currentDrawing.SetPosition(0, tip.transform.position);
+            currentDrawing.SetPosition(0, PenPoint());
             currentDrawing.gameObject.layer = LayerMask.NameToLayer("Projection");
         }
         else
         {
             var currentPos = currentDrawing.GetPosition(currentDrawing.positionCount - 1);
-            if (Vector3.Distance(currentPos, tip.transform.position) > DrawOffset)
+            if (Vector3.Distance(currentPos, PenPoint()) > DrawOffset)
             {
                 currentDrawing.positionCount++;
-                currentDrawing.SetPosition(currentDrawing.positionCount - 1, tip.transform.position);
+                currentDrawing.SetPosition(currentDrawing.positionCount - 1, PenPoint());
             }
         }
     }

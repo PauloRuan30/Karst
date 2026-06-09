@@ -127,9 +127,12 @@ if __name__ == "__main__":
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((host, port))
         profile_name = sock.recv(10000).decode('utf-8')
+        print(f"[DEBUG] Perfil recebido do Unity: '{profile_name}'", flush=True)
         load_initial_buffer(experience_replay, class_names)
+        print("[DEBUG] Buffer carregado, carregando modelo .h5 ...", flush=True)
         loaded_model = load_saved_model(os.path.dirname(os.path.abspath(sys.argv[0])) + "/models/" + profile_name +".h5")
         sock.sendall("Model loaded".encode("UTF-8"))
+        print("[DEBUG] 'Model loaded' enviado ao Unity. Pronto pra reconhecer desenhos.", flush=True)
     except Exception as e:
         print(f"Error connecting to socket or load data: {e}")
         sys.exit(1)
