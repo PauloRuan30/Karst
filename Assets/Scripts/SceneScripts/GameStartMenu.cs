@@ -8,6 +8,9 @@ using UnityEngine.UI;
 
 public class GameStartMenu : MonoBehaviour
 {
+    [Header("Scene Transition")]
+    [SerializeField] private int lobbySceneIndex = 1;
+
     bool profileSelected;
     string profileModelName;
     int profileIndex;
@@ -156,7 +159,7 @@ public class GameStartMenu : MonoBehaviour
         {
             pythonConnector.modelName = profileModelName;
             HideAll();
-            SceneTransitionManager.singleton.GoToScene(1);
+            SceneTransitionManager.singleton.GoToScene(lobbySceneIndex);
         }
         else
         {
